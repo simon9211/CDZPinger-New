@@ -33,7 +33,7 @@
 {
     if (!self.pingingDesired && !self.simplePing) {
         self.pingingDesired = YES;
-        self.simplePing = [SimplePing simplePingWithHostName:self.domainOrIp];
+        self.simplePing = [[SimplePing alloc] initWithHostName:self.domainOrIp];
         self.simplePing.delegate = self;
         [self.simplePing start];
     }
@@ -48,7 +48,7 @@
 
 - (void)receivedError:(NSError *)error {
     [self stopPinging];
-
+    
     id delegate = self.delegate;
     if ([delegate respondsToSelector:@selector(pinger:didEncounterError:)]) {
         [delegate pinger:self didEncounterError:error];
@@ -62,7 +62,7 @@
             [self sendPing];
         });
     }
-
+    
     [self addPingTimeToRecord:time];
     __block NSTimeInterval totalTime = 0.0;
     __block NSUInteger timeCount = 0;
@@ -71,7 +71,7 @@
         timeCount++;
     }];
     NSTimeInterval averageTime = totalTime/(double)timeCount;
-
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         id delegate = self.delegate;
         if ([delegate respondsToSelector:@selector(pinger:didUpdateWithAverageSeconds:)]) {
@@ -103,16 +103,15 @@
 - (void)simplePing:(SimplePing *)pinger didSendPacket:(NSData *)packet
 {
     self.pingStartTime = [NSDate date];
-
-    NSLog(@"#%u sent", (unsigned int) OSSwapBigToHostInt16(((const ICMPHeader *) [packet bytes])->sequenceNumber));
+    
+    //    NSLog(@"#%u sent", (unsigned int) OSSwapBigToHostInt16(((const ICMPHeader *) [packet bytes])->sequenceNumber));
 }
 
 - (void)simplePing:(SimplePing *)pinger didReceivePingResponsePacket:(NSData *)packet
 {
     NSTimeInterval pingTime = [[NSDate date] timeIntervalSinceDate:self.pingStartTime];
     [self receivedPingWithTime:pingTime];
-
-    NSLog(@"#%u received", (unsigned int) OSSwapBigToHostInt16([SimplePing icmpInPacket:packet]->sequenceNumber) );
+    //    NSLog(@"#%u received", (unsigned int) OSSwapBigToHostInt16([SimplePing icmpInPacket:packet]->sequenceNumber) );
 }
 
 - (void)simplePing:(SimplePing *)pinger didFailWithError:(NSError *)error
@@ -136,3 +135,4 @@
 }
 
 @end
+
